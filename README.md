@@ -4,6 +4,14 @@ Portfolio digital de **Kilian Torres**, diseñador gráfico y desarrollador Full
 
 Es un sitio estático (HTML, CSS y JavaScript). La primera vista es el currículum en formato A4. Desde `(portfolio)` se entra a un escritorio interactivo con carpetas, archivos, ventanas y tres webs embebidas: Magua Canaria, PLIEGO y Kojurebi.
 
+## Enlace público
+
+Este es el enlace para enviar a cualquiera, en móvil u ordenador:
+
+**https://kiliante2000-source.github.io/**
+
+Abre el CV. Desde `(portfolio)` se entra al escritorio.
+
 ## Arrancar en local
 
 Hace falta un servidor HTTP. Abrir los archivos con `file://` no sirve: el vídeo, las fuentes y varias rutas internas fallan.
