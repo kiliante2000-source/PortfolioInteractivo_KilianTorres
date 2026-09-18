@@ -197,7 +197,6 @@
             const bootCinema = new IntersectionObserver(
                 (entries) => {
                     if (!entries.some((entry) => entry.isIntersecting)) return;
-                    cinemaVideo.preload = "auto";
                     playCinema();
                     bootCinema.disconnect();
                 },

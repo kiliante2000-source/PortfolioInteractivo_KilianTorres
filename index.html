@@ -11,7 +11,8 @@
     <meta name="pinterest" content="nopin" />
     <meta name="pinterest-rich-pin" content="false" />
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="css/styles.css?v=cvzoom2" />
+    <link rel="preload" as="image" href="assets/photo.jpg" fetchpriority="high" />
+    <link rel="stylesheet" href="css/styles.css?v=cvzoom3" />
   </head>
   <body>
     <div class="stage">
@@ -98,13 +99,14 @@
 
           <img
             class="portrait"
-            src="assets/photo.png"
+            src="assets/photo.jpg"
             alt="Kilian Torres sentado en un banco con un ramo de flores"
             width="818"
             height="1152"
             draggable="false"
             nopin="nopin"
             decoding="async"
+            fetchpriority="high"
           />
 
           <section class="block skills" aria-labelledby="skills-title">
@@ -252,6 +254,6 @@
       </div>
     </div>
     <script src="js/protect.js?v=1"></script>
-    <script src="js/main.js?v=cvzoom2"></script>
+    <script src="js/main.js?v=cvzoom3"></script>
   </body>
 </html>

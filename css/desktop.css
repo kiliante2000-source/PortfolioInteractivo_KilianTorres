@@ -364,6 +364,7 @@ button {
   display: inline-block;
   will-change: transform, color;
   pointer-events: auto;
+  transition: transform 0.12s linear;
 }
 
 .welcome {
@@ -545,7 +546,7 @@ button {
   border-radius: 0;
   overflow: hidden;
   background-color: var(--paper);
-  background-image: url("../assets/photo.png");
+  background-image: url("../assets/photo.jpg");
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center 18%;

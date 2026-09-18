@@ -270,22 +270,24 @@ function enableDrag(items) {
 
 function animateCircles(items) {
   const step = () => {
-    for (const c of items) {
-      if (c.dragging) continue;
+    if (!document.hidden) {
+      for (const c of items) {
+        if (c.dragging) continue;
 
-      c.x += c.vx;
-      c.y += c.vy;
+        c.x += c.vx;
+        c.y += c.vy;
 
-      if (c.x - c.r <= BOUNDS.minX || c.x + c.r >= BOUNDS.maxX) {
-        c.vx *= -1;
-        c.x = Math.min(BOUNDS.maxX - c.r, Math.max(BOUNDS.minX + c.r, c.x));
+        if (c.x - c.r <= BOUNDS.minX || c.x + c.r >= BOUNDS.maxX) {
+          c.vx *= -1;
+          c.x = Math.min(BOUNDS.maxX - c.r, Math.max(BOUNDS.minX + c.r, c.x));
+        }
+        if (c.y - c.r <= BOUNDS.minY || c.y + c.r >= BOUNDS.maxY) {
+          c.vy *= -1;
+          c.y = Math.min(BOUNDS.maxY - c.r, Math.max(BOUNDS.minY + c.r, c.y));
+        }
+
+        paintCircle(c);
       }
-      if (c.y - c.r <= BOUNDS.minY || c.y + c.r >= BOUNDS.maxY) {
-        c.vy *= -1;
-        c.y = Math.min(BOUNDS.maxY - c.r, Math.max(BOUNDS.minY + c.r, c.y));
-      }
-
-      paintCircle(c);
     }
     requestAnimationFrame(step);
   };

@@ -222,7 +222,7 @@ const WINDOWS = {
   },
   photo: {
     title: "Kilian.png",
-    html: `<img class="photo-open" src="assets/photo.png" alt="Kilian Torres sentado en un banco" draggable="false" nopin="nopin" decoding="async" />`,
+    html: `<img class="photo-open" src="assets/photo.jpg" alt="Kilian Torres sentado en un banco" draggable="false" nopin="nopin" decoding="async" />`,
   },
   about: {
     title: "Sobre-mi.txt",
@@ -301,6 +301,12 @@ const scriptChars = splitChars(document.getElementById("script"));
 const allChars = [...welcomeChars, ...scriptChars];
 const clickedUntil = new WeakMap();
 let motionT = 0;
+const charMeta = allChars.map((ch, i) => ({
+  el: ch,
+  i: Number(ch.style.getPropertyValue("--i")) || i,
+  script: ch.parentElement?.id === "script",
+  last: "",
+}));
 
 function cacheCharRest() {
   allChars.forEach((ch) => {
@@ -308,6 +314,9 @@ function cacheCharRest() {
     const r = ch.getBoundingClientRect();
     ch.dataset.cx = String(r.left + r.width / 2);
     ch.dataset.cy = String(r.top + r.height / 2);
+  });
+  charMeta.forEach((item) => {
+    item.last = "";
   });
 }
 
@@ -364,13 +373,13 @@ let ringPos = { ...mouse };
 window.addEventListener("pointermove", (e) => {
   mouse.x = e.clientX;
   mouse.y = e.clientY;
-  if (dot) dot.style.transform = `translate(${mouse.x}px, ${mouse.y}px)`;
+  if (dot) dot.style.transform = `translate3d(${mouse.x}px, ${mouse.y}px, 0)`;
 });
 
 function loopCursor() {
   ringPos.x += (mouse.x - ringPos.x) * 0.18;
   ringPos.y += (mouse.y - ringPos.y) * 0.18;
-  if (ring) ring.style.transform = `translate(${ringPos.x}px, ${ringPos.y}px)`;
+  if (ring) ring.style.transform = `translate3d(${ringPos.x}px, ${ringPos.y}px, 0)`;
   requestAnimationFrame(loopCursor);
 }
 if (!isTouch && !prefersReduced) loopCursor();
@@ -383,22 +392,26 @@ document.addEventListener("pointerover", (e) => {
 });
 
 function magnetize() {
-  motionT += 0.05;
-  for (const ch of allChars) {
-    if ((clickedUntil.get(ch) || 0) > performance.now()) continue;
-    const cx = Number(ch.dataset.cx);
-    const cy = Number(ch.dataset.cy);
-    const i = Number(ch.style.getPropertyValue("--i")) || 0;
-    const dx = mouse.x - cx;
-    const dy = mouse.y - cy;
-    const dist = Math.hypot(dx, dy) || 1;
-    const pull = Math.max(0, 1 - dist / 190);
-    const x = (dx / dist) * pull * 22;
-    const wave = ch.parentElement?.id === "script" ? Math.sin(motionT + i * 0.5) * 11 : 0;
-    const y = (dy / dist) * pull * 16 + wave;
-    const rot = pull * (dx > 0 ? 12 : -12) + (ch.parentElement?.id === "script" ? Math.sin(motionT / 2 + i) * 4 : 0);
-    ch.style.transition = "transform 0.12s linear";
-    ch.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg)`;
+  if (!document.hidden) {
+    motionT += 0.05;
+    const now = performance.now();
+    for (const item of charMeta) {
+      if ((clickedUntil.get(item.el) || 0) > now) continue;
+      const cx = Number(item.el.dataset.cx);
+      const cy = Number(item.el.dataset.cy);
+      const dx = mouse.x - cx;
+      const dy = mouse.y - cy;
+      const dist = Math.hypot(dx, dy) || 1;
+      const pull = Math.max(0, 1 - dist / 190);
+      const wave = item.script ? Math.sin(motionT + item.i * 0.5) * 11 : 0;
+      const x = (dx / dist) * pull * 22;
+      const y = (dy / dist) * pull * 16 + wave;
+      const rot = pull * (dx > 0 ? 12 : -12) + (item.script ? Math.sin(motionT / 2 + item.i) * 4 : 0);
+      const next = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) rotate(${rot.toFixed(2)}deg)`;
+      if (item.last === next) continue;
+      item.last = next;
+      item.el.style.transform = next;
+    }
   }
   requestAnimationFrame(magnetize);
 }
@@ -409,16 +422,22 @@ if (!prefersReduced) {
     magnetize();
   }, 900);
   window.addEventListener("resize", cacheCharRest);
+  document.fonts?.ready.then(cacheCharRest);
+  window.addEventListener("load", cacheCharRest, { once: true });
 }
 
-allChars.forEach((ch) => {
+allChars.forEach((ch, idx) => {
   ch.addEventListener("click", () => {
     if (prefersReduced) return;
     const jump = 50 + Math.random() * 90;
     const rot = (Math.random() - 0.5) * 90;
     clickedUntil.set(ch, performance.now() + 520);
     ch.style.transition = "transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1)";
-    ch.style.transform = `translate(${(Math.random() - 0.5) * 100}px, ${-jump}px) rotate(${rot}deg) scale(1.4)`;
+    ch.style.transform = `translate3d(${(Math.random() - 0.5) * 100}px, ${-jump}px, 0) rotate(${rot}deg) scale(1.4)`;
+    if (charMeta[idx]) charMeta[idx].last = "";
+    setTimeout(() => {
+      ch.style.transition = "";
+    }, 520);
   });
 });
 
@@ -1755,6 +1774,10 @@ function bounceCircleOffRect(c, rect) {
 }
 
 function animateCircles() {
+  if (document.hidden) {
+    requestAnimationFrame(animateCircles);
+    return;
+  }
   const w = circlesLayer.clientWidth;
   const h = circlesLayer.clientHeight;
   if (!w || !h) {
