@@ -1906,15 +1906,15 @@ body.is-file-drag .dock-trash .trash-lid {
   }
 
   .welcome {
-    font-size: clamp(32px, 8.4vw, 40px);
+    font-size: clamp(40px, 10.2vw, 48px);
   }
 
   .script {
-    font-size: clamp(56px, 15.6vw, 72px);
+    font-size: clamp(72px, 18vw, 88px);
   }
 
   .year-orbit {
-    font-size: clamp(18px, 5vw, 24px);
+    font-size: clamp(20px, 5.2vw, 26px);
   }
 
   .cover-meta {
@@ -1967,7 +1967,7 @@ body.is-file-drag .dock-trash .trash-lid {
   }
 
   .dock {
-    bottom: 12px;
+    bottom: 22px;
     gap: 4px;
     padding: 6px 8px;
   }
