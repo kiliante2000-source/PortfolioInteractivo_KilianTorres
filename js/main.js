@@ -175,7 +175,7 @@ function clampCircle(c) {
 }
 
 function paintCircle(c) {
-  c.el.style.transform = `translate(${c.x - c.r}px, ${c.y - c.r}px)`;
+  c.el.style.transform = `translate3d(${c.x - c.r}px, ${c.y - c.r}px, 0)`;
 }
 
 function createCircles() {

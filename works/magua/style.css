@@ -74,6 +74,15 @@ body {
     cursor: auto;
 }
 
+img,
+video,
+canvas,
+picture {
+    -webkit-user-drag: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+
 ::selection {
     background: var(--gold);
     color: var(--ink);

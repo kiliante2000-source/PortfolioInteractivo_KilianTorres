@@ -222,7 +222,7 @@ const WINDOWS = {
   },
   photo: {
     title: "Kilian.png",
-    html: `<img class="photo-open" src="assets/photo.png" alt="Kilian Torres sentado en un banco" />`,
+    html: `<img class="photo-open" src="assets/photo.png" alt="Kilian Torres sentado en un banco" draggable="false" nopin="nopin" decoding="async" />`,
   },
   about: {
     title: "Sobre-mi.txt",
@@ -1692,18 +1692,28 @@ const circleItems = CIRCLES.map((spec) => {
   return { ...spec, r, el };
 });
 
+let dockCache = null;
+let dockCacheAt = 0;
+window.addEventListener("resize", () => {
+  dockCache = null;
+});
+
 function dockBoundsInLayer() {
+  const now = performance.now();
+  if (dockCache && now - dockCacheAt < 120) return dockCache;
   const dock = document.getElementById("dock");
   if (!dock || !circlesLayer) return null;
   const layer = circlesLayer.getBoundingClientRect();
   const box = dock.getBoundingClientRect();
   const pad = 6;
-  return {
+  dockCacheAt = now;
+  dockCache = {
     left: box.left - layer.left - pad,
     right: box.right - layer.left + pad,
     top: box.top - layer.top - pad,
     bottom: circlesLayer.clientHeight,
   };
+  return dockCache;
 }
 
 function bounceCircleOffRect(c, rect) {
@@ -1780,7 +1790,7 @@ function animateCircles() {
 
     if (dock) bounceCircleOffRect(c, dock);
 
-    c.el.style.transform = `translate(${c.x - c.r}px, ${c.y - c.r}px)`;
+    c.el.style.transform = `translate3d(${c.x - c.r}px, ${c.y - c.r}px, 0)`;
   }
   requestAnimationFrame(animateCircles);
 }

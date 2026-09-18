@@ -30,6 +30,15 @@ body {
   cursor: none;
 }
 
+img,
+video,
+canvas,
+picture {
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
 body.os {
   overflow: hidden;
 }
@@ -168,6 +177,7 @@ button {
   overflow: hidden;
   pointer-events: none;
   z-index: 1;
+  contain: layout paint;
 }
 
 .circle {
@@ -175,6 +185,8 @@ button {
   border-radius: 50%;
   will-change: transform;
   mix-blend-mode: multiply;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .menubar {

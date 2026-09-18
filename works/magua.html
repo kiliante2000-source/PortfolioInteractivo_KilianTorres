@@ -3,6 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="pinterest" content="nopin" />
+    <meta name="pinterest-rich-pin" content="false" />
     <title>Magua Canaria — Kilian Torres</title>
     <link rel="icon" href="magua/img/Sol.png" type="image/png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -18,6 +20,11 @@
       }
       * {
         box-sizing: border-box;
+      }
+      img, video {
+        -webkit-user-drag: none;
+        user-select: none;
+        -webkit-touch-callout: none;
       }
       html,
       body {
@@ -82,7 +89,7 @@
     <header class="chrome">
       <a class="back" id="back" href="../portfolio.html">← volver al portfolio</a>
     </header>
-    <iframe id="studio" title="Magua Canaria" src="magua/index.html?v=m14" allow="fullscreen; autoplay" allowfullscreen></iframe>
+    <iframe id="studio" title="Magua Canaria" src="magua/index.html?v=m15" allow="fullscreen; autoplay" allowfullscreen></iframe>
     <script>
       const COLORS = [
         { bg: "#ff783a", fg: "#111111" },
@@ -136,5 +143,6 @@
       back.addEventListener("focus", paint);
       back.addEventListener("blur", clear);
     </script>
+    <script src="../js/protect.js?v=1"></script>
   </body>
 </html>

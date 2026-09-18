@@ -50,6 +50,15 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+img,
+video,
+canvas,
+picture {
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -320,6 +329,10 @@ h1 {
   border: 1.15px solid #111;
   display: block;
   box-sizing: border-box;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+  pointer-events: auto;
 }
 
 .page h2 {
@@ -514,6 +527,7 @@ h1 {
   inset: 0;
   pointer-events: none;
   z-index: 6;
+  contain: layout paint;
 }
 
 .circle {
@@ -525,6 +539,8 @@ h1 {
   touch-action: none;
   user-select: none;
   transform-origin: center;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .circle:active,

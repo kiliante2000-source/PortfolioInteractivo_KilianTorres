@@ -3,6 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="pinterest" content="nopin" />
+    <meta name="pinterest-rich-pin" content="false" />
     <title>Kojurebi — Kilian Torres</title>
     <link rel="icon" href="kojurebi/shop/favicon.png" type="image/png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -18,6 +20,11 @@
       }
       * {
         box-sizing: border-box;
+      }
+      img, video {
+        -webkit-user-drag: none;
+        user-select: none;
+        -webkit-touch-callout: none;
       }
       html,
       body {
@@ -95,5 +102,6 @@
       back.addEventListener("focus", paint);
       back.addEventListener("blur", clear);
     </script>
+    <script src="../js/protect.js?v=1"></script>
   </body>
 </html>

@@ -194,7 +194,16 @@
 
     if (cinemaVideo) {
         if (!reduceMotion) {
-            playCinema();
+            const bootCinema = new IntersectionObserver(
+                (entries) => {
+                    if (!entries.some((entry) => entry.isIntersecting)) return;
+                    cinemaVideo.preload = "auto";
+                    playCinema();
+                    bootCinema.disconnect();
+                },
+                { rootMargin: "160px" }
+            );
+            bootCinema.observe(cinemaScreen || cinemaVideo);
         }
 
         cinemaPlay?.addEventListener("click", unlockSound);
