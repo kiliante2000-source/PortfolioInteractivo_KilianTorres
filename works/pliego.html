@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PLIEGO — Kilian Torres</title>
+    <link rel="icon" href="pliego/app/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --paper: #f4f1ea;
+        --ink: #111;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: var(--paper);
+        color: var(--ink);
+      }
+      body {
+        display: grid;
+        grid-template-rows: auto 1fr;
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+      }
+      .chrome {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+        padding: 6px 12px;
+        background: var(--paper);
+        border-bottom: 1.5px solid var(--ink);
+      }
+      .back {
+        color: var(--ink);
+        text-decoration: none;
+        border: 1px solid var(--ink);
+        padding: 6px 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-size: 11px;
+        background: var(--paper);
+      }
+      iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        background: #050608;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="chrome">
+      <a class="back" id="back" href="../portfolio.html">← volver al portfolio</a>
+    </header>
+    <iframe id="studio" title="PLIEGO" src="pliego/app/"></iframe>
+    <script>
+      const COLORS = [
+        { bg: "#ff783a", fg: "#111111" },
+        { bg: "#152dff", fg: "#f4f1ea" },
+        { bg: "#ec76e5", fg: "#111111" },
+        { bg: "#cbf52a", fg: "#111111" },
+        { bg: "#ff3838", fg: "#f4f1ea" },
+      ];
+      const back = document.getElementById("back");
+      let last = -1;
+
+      function paint() {
+        let next = Math.floor(Math.random() * COLORS.length);
+        if (COLORS.length > 1 && next === last) next = (next + 1) % COLORS.length;
+        last = next;
+        const color = COLORS[next];
+        back.style.background = color.bg;
+        back.style.color = color.fg;
+      }
+
+      function clear() {
+        back.style.background = "";
+        back.style.color = "";
+      }
+
+      back.addEventListener("pointerenter", paint);
+      back.addEventListener("pointerleave", clear);
+      back.addEventListener("focus", paint);
+      back.addEventListener("blur", clear);
+    </script>
+  </body>
+</html>

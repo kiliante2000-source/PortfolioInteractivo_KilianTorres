@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000">
+  <rect width="800" height="1000" fill="#FFF8EE"/>
+  <path d="M400 120 C 280 200, 210 360, 260 520 C 300 650, 400 760, 400 880 C 400 760, 500 650, 540 520 C 590 360, 520 200, 400 120 Z" fill="#C6F25A" stroke="#1D3A6E" stroke-width="16"/>
+  <path d="M400 180 C 340 250, 300 360, 330 500" stroke="#1D3A6E" stroke-width="8" fill="none"/>
+  <path d="M400 220 C 470 300, 500 420, 470 560" stroke="#FFE14A" stroke-width="14" fill="none"/>
+  <path d="M300 340 C 360 300, 420 360, 390 430 C 360 390, 320 400, 300 340 Z" fill="#8BE0FF" stroke="#1D3A6E" stroke-width="6"/>
+  <path d="M470 390 C 530 360, 560 430, 510 490 C 500 440, 470 450, 470 390 Z" fill="#FFE14A" stroke="#1D3A6E" stroke-width="6"/>
+  <path d="M320 560 C 380 530, 430 600, 390 660 C 360 620, 330 630, 320 560 Z" fill="#FF8AB8" stroke="#1D3A6E" stroke-width="6"/>
+  <text x="80" y="960" fill="#1D3A6E" font-size="28" font-family="Georgia, serif">pieza única · firmada</text>
+</svg>

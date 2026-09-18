@@ -1,0 +1,601 @@
+@font-face {
+  font-family: "DejaVu Serif";
+  src: url("../fonts/DejaVuSerif.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DejaVu Sans Mono";
+  src: url("../fonts/DejaVuSansMono.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DejaVu Sans Mono";
+  src: url("../fonts/DejaVuSansMono-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --page-w: 595.2756px;
+  --page-h: 841.8898px;
+  --paper: #f4f1ea;
+  --ink: #111111;
+  --stage: #1e1d1d;
+  --c-orange: #ff783a;
+  --c-blue: #152dff;
+  --c-pink: #ec76e5;
+  --c-lime: #cbf52a;
+  --c-red: #ff3838;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--stage);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.stage {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: var(--stage);
+  touch-action: none;
+}
+
+.page-wrap {
+  position: relative;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+.stage.is-zoomed {
+  cursor: grab;
+}
+
+.stage.is-panning {
+  cursor: grabbing;
+}
+
+.page {
+  width: var(--page-w);
+  height: var(--page-h);
+  background: var(--paper);
+  position: relative;
+  overflow: hidden;
+  transform-origin: top left;
+  color: var(--ink);
+}
+
+.cv-dl {
+  position: absolute;
+  left: 66px;
+  top: 18px;
+  z-index: 12;
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px 5px;
+  font-family: "DejaVu Sans Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.cv-dl:hover,
+.cv-dl:focus-visible {
+  color: var(--paper);
+  background: var(--stage);
+  border-color: var(--stage);
+  text-decoration: none;
+}
+
+.year {
+  position: absolute;
+  left: 33.84px;
+  top: 111.89px;
+  margin: 0;
+  font-family: "DejaVu Sans Mono", ui-monospace, monospace;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0;
+  white-space: nowrap;
+  transform: rotate(-90deg);
+  transform-origin: top left;
+}
+
+h1 {
+  position: absolute;
+  left: 66px;
+  top: 82.3px;
+  margin: 0;
+  font-family: "DejaVu Serif", Georgia, serif;
+  font-size: 32.3px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.role {
+  position: absolute;
+  left: 66px;
+  top: 126.8px;
+  width: 213px;
+  margin: 0;
+  text-align: right;
+  font-family: "DejaVu Sans Mono", ui-monospace, monospace;
+  font-size: 9.4px;
+  line-height: 13px;
+  font-weight: 400;
+}
+
+.slash {
+  position: absolute;
+  left: 62px;
+  top: 158px;
+  margin: 0;
+  font-family: Helvetica, "Helvetica Neue", Arial, sans-serif;
+  font-size: 27px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.08em;
+}
+
+.contact {
+  position: absolute;
+  left: 64px;
+  top: 187.6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: "DejaVu Sans Mono", ui-monospace, monospace;
+  font-size: 8.2px;
+  line-height: 10.8px;
+}
+
+.portfolio-btn {
+  position: absolute;
+  left: 196px;
+  top: 224px;
+  z-index: 9;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 11px 7px 12px;
+  font-family: "DejaVu Sans Mono", ui-monospace, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  color: var(--paper);
+  background: var(--ink);
+  border: 1.5px solid var(--ink);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  animation: portfolio-fill 3.6s linear infinite;
+}
+
+.portfolio-btn-arrow {
+  display: inline-block;
+  font-size: 12px;
+  animation: arrow-nudge 1.2s ease-in-out infinite;
+}
+
+.portfolio-btn:hover,
+.portfolio-btn:focus-visible {
+  text-decoration: none;
+  color: var(--ink);
+  background: var(--paper);
+  animation: portfolio-color 1.2s linear infinite;
+}
+
+.portfolio-btn.is-held {
+  cursor: grabbing;
+  z-index: 24;
+  box-shadow: 4px 6px 0 rgb(17 17 17 / 0.12);
+}
+
+.portfolio-btn:hover .portfolio-btn-arrow,
+.portfolio-btn:focus-visible .portfolio-btn-arrow {
+  animation: none;
+  transform: translate(2px, -2px);
+}
+
+@keyframes portfolio-color {
+  0%,
+  100% {
+    color: var(--c-orange);
+  }
+  20% {
+    color: var(--c-blue);
+  }
+  40% {
+    color: var(--c-pink);
+  }
+  60% {
+    color: var(--c-lime);
+  }
+  80% {
+    color: var(--c-red);
+  }
+}
+
+@keyframes portfolio-fill {
+  0%,
+  100% {
+    background: var(--c-orange);
+    border-color: var(--c-orange);
+  }
+  20% {
+    background: var(--c-blue);
+    border-color: var(--c-blue);
+  }
+  40% {
+    background: var(--c-pink);
+    border-color: var(--c-pink);
+  }
+  60% {
+    background: var(--c-lime);
+    border-color: var(--c-lime);
+    color: var(--ink);
+  }
+  80% {
+    background: var(--c-red);
+    border-color: var(--c-red);
+  }
+}
+
+@keyframes arrow-nudge {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(2px, -2px);
+  }
+}
+
+.folio-fold {
+  --s: 32px;
+  --lift: 0;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: var(--s);
+  height: var(--s);
+  z-index: 16;
+  pointer-events: none;
+  transform: rotate(calc(var(--lift) * -8deg));
+  transform-origin: 100% 0;
+}
+
+.folio-fold svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.portrait {
+  position: absolute;
+  left: 305px;
+  top: 45.89px;
+  width: 238px;
+  height: 335px;
+  object-fit: fill;
+  border: 1.15px solid #111;
+  display: block;
+  box-sizing: border-box;
+}
+
+.page h2 {
+  position: absolute;
+  margin: 0;
+  font-family: "DejaVu Serif", Georgia, serif;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.skills h2,
+.software h2,
+.about h2 {
+  font-size: 18px;
+}
+
+.education h2,
+.values h2,
+.languages h2,
+.code h2 {
+  font-size: 17.5px;
+}
+
+.experience h2 {
+  font-size: 18.5px;
+}
+
+.skills h2 {
+  left: 55px;
+  top: 246.2px;
+}
+
+.software h2 {
+  left: 55px;
+  top: 385.2px;
+}
+
+.education h2 {
+  left: 55px;
+  top: 505.6px;
+}
+
+.values h2 {
+  left: 55px;
+  top: 665.6px;
+}
+
+.languages h2 {
+  left: 55px;
+  top: 746.6px;
+}
+
+.about h2 {
+  left: 306px;
+  top: 385.2px;
+}
+
+.code h2 {
+  left: 306px;
+  top: 505.6px;
+}
+
+.experience h2 {
+  left: 306px;
+  top: 597.8px;
+}
+
+.block ul,
+.block p {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: "DejaVu Sans Mono", ui-monospace, monospace;
+  color: var(--ink);
+}
+
+.skills ul {
+  left: 76px;
+  top: 276.6px;
+  font-size: 8.3px;
+  line-height: 9.05px;
+}
+
+.software ul {
+  left: 77px;
+  top: 414.7px;
+  font-size: 8.2px;
+  line-height: 9.14px;
+}
+
+.education ul {
+  left: 67px;
+  top: 534.7px;
+}
+
+.education li {
+  margin-bottom: 5.3px;
+}
+
+.education strong {
+  display: block;
+  font-size: 8.1px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.education span {
+  display: block;
+  padding-left: 11px;
+  font-size: 7.4px;
+  line-height: 1.25;
+  font-weight: 400;
+}
+
+.values ul,
+.languages ul {
+  left: 72px;
+  font-size: 7.5px;
+  line-height: 8.05px;
+}
+
+.values ul {
+  top: 691.2px;
+}
+
+.languages ul {
+  top: 773.2px;
+}
+
+.values li,
+.languages li {
+  display: grid;
+  grid-template-columns: 78px 1fr;
+}
+
+.about p {
+  left: 308px;
+  top: 414.6px;
+  font-size: 8.3px;
+  line-height: 9.8px;
+}
+
+.code ul {
+  left: 308px;
+  top: 535.8px;
+  width: 230px;
+  font-size: 8.1px;
+  line-height: 9px;
+  display: grid;
+  grid-template-columns: 112px 1fr;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(3, 9px);
+}
+
+.experience ul {
+  left: 308px;
+  top: 633.4px;
+}
+
+.experience li {
+  margin-bottom: 7.8px;
+}
+
+.experience strong {
+  display: block;
+  font-size: 8.6px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.experience span {
+  display: block;
+  padding-left: 16px;
+  font-size: 7.8px;
+  line-height: 1.22;
+}
+
+.signature {
+  position: absolute;
+  left: 486px;
+  top: 762.5px;
+  width: 53px;
+  height: 40.4px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.circles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 6;
+}
+
+.circle {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform;
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  transform-origin: center;
+}
+
+.circle:active,
+.circle.is-held {
+  cursor: grabbing;
+  scale: 1.08;
+  z-index: 20;
+}
+
+.archive-page .intro {
+  position: absolute;
+  left: 55px;
+  top: 230px;
+  width: 485px;
+  font-family: "DejaVu Sans Mono", ui-monospace, monospace;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.archive-page .back-btn {
+  position: absolute;
+  left: 62px;
+  top: 196px;
+  font-family: "DejaVu Sans Mono", ui-monospace, monospace;
+  font-size: 10.8px;
+  font-weight: 700;
+  animation: portfolio-color 7s linear infinite;
+}
+
+.archive-page .slots {
+  position: absolute;
+  left: 55px;
+  top: 300px;
+  right: 52px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.archive-page .slot {
+  min-height: 150px;
+  border: 1px dashed #111;
+  display: grid;
+  place-items: center;
+  font-family: "DejaVu Sans Mono", ui-monospace, monospace;
+  font-size: 8.2px;
+  opacity: 0.45;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portfolio-btn,
+  .archive-page .back-btn {
+    animation: none;
+    color: var(--paper);
+    background: var(--c-blue);
+    border-color: var(--c-blue);
+  }
+
+  .portfolio-btn-arrow {
+    animation: none;
+  }
+
+  .circle {
+    display: none;
+  }
+}
+
+@media print {
+  .cv-dl,
+  .circles,
+  .folio-fold {
+    display: none !important;
+  }
+}

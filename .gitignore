@@ -1,0 +1,10 @@
+.preview
+.DS_Store
+.kojurebi-build/
+.pliego-build/
+.magua-build/
+.cursor/
+.cursorignore
+frontend/
+assets-out/
+node_modules/

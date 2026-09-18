@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 700">
+  <rect width="900" height="700" fill="#F7E9FF"/>
+  <g transform="translate(40 50) rotate(-4)">
+    <rect width="240" height="280" rx="18" fill="#FFF8EE" stroke="#1D3A6E" stroke-width="8"/>
+    <text x="24" y="70" fill="#1D3A6E" font-size="28" font-family="Georgia, serif">small art</text>
+    <text x="24" y="108" fill="#FF4F9A" font-size="28" font-family="Georgia, serif">big vibes</text>
+    <circle cx="120" cy="190" r="48" fill="#FF3B4A" stroke="#1D3A6E" stroke-width="6"/>
+  </g>
+  <g transform="translate(330 40) rotate(3)">
+    <rect width="240" height="280" rx="18" fill="#FF8AB8" stroke="#1D3A6E" stroke-width="8"/>
+    <polygon points="120,70 138,118 190,120 148,152 162,204 120,174 78,204 92,152 50,120 102,118" fill="#FFE14A" stroke="#1D3A6E" stroke-width="6"/>
+    <text x="28" y="250" fill="#1D3A6E" font-size="22" font-family="Georgia, serif">a people</text>
+  </g>
+  <g transform="translate(620 70) rotate(-6)">
+    <rect width="240" height="280" rx="18" fill="#FFF8EE" stroke="#1D3A6E" stroke-width="8"/>
+    <path d="M120 90c-36-44-100 8-44 62l44 42 44-42c56-54-8-106-44-62z" fill="#FF4F9A" stroke="#1D3A6E" stroke-width="7"/>
+    <text x="30" y="240" fill="#1D3A6E" font-size="20" font-family="Georgia, serif">art things</text>
+  </g>
+  <g transform="translate(180 360) rotate(5)">
+    <rect width="520" height="260" rx="20" fill="#1D3A6E"/>
+    <text x="36" y="90" fill="#FFE14A" font-size="42" font-family="Georgia, serif">KOJUREBI</text>
+    <text x="36" y="150" fill="#FFB7D5" font-size="28" font-family="Georgia, serif">mail me a drawing</text>
+    <path d="M40 200 q60 -30 120 0 t120 0 t120 0" stroke="#FF4F9A" stroke-width="10" fill="none"/>
+  </g>
+</svg>

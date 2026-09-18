@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+  <rect width="800" height="800" fill="#FFD3E6"/>
+  <g transform="translate(90 80) rotate(-8)">
+    <rect width="220" height="220" rx="36" fill="#FFF8EE" stroke="#1D3A6E" stroke-width="10"/>
+    <polygon points="110,30 132,90 196,92 146,132 162,194 110,160 58,194 74,132 24,92 88,90" fill="#FFE14A" stroke="#1D3A6E" stroke-width="8"/>
+  </g>
+  <g transform="translate(430 70) rotate(7)">
+    <rect width="240" height="240" rx="40" fill="#FFF8EE" stroke="#1D3A6E" stroke-width="10"/>
+    <path d="M120 70c-40-50-110 10-50 70l50 48 50-48c60-60-10-120-50-70z" fill="#FF4F9A" stroke="#1D3A6E" stroke-width="8"/>
+  </g>
+  <g transform="translate(70 400) rotate(6)">
+    <rect width="260" height="260" rx="44" fill="#FFF8EE" stroke="#1D3A6E" stroke-width="10"/>
+    <circle cx="100" cy="150" r="58" fill="#FF3B4A" stroke="#1D3A6E" stroke-width="8"/>
+    <circle cx="160" cy="150" r="54" fill="#FF3355" stroke="#1D3A6E" stroke-width="8"/>
+    <path d="M128 70 v50" stroke="#1D3A6E" stroke-width="8"/>
+  </g>
+  <g transform="translate(430 430) rotate(-5)">
+    <rect width="250" height="250" rx="40" fill="#FFF8EE" stroke="#1D3A6E" stroke-width="10"/>
+    <path d="M40 130 q40 -70 80 0 t80 0" stroke="#FF4F9A" stroke-width="16" fill="none"/>
+    <path d="M50 170 q40 -70 80 0 t80 0" stroke="#1D3A6E" stroke-width="10" fill="none"/>
+  </g>
+</svg>

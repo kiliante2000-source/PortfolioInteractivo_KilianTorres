@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 120" fill="none" aria-hidden="true">
+  <!-- Geometric PLIEGO wordmark approximation -->
+  <g fill="currentColor">
+    <!-- P -->
+    <path d="M0 0h52c28 0 48 16 48 44s-20 44-48 44H28v32H0V0zm28 60h22c12 0 20-6.5 20-16S62 28 50 28H28v32z"/>
+    <!-- L -->
+    <path d="M120 0h28v92h52v28H120V0z"/>
+    <!-- i -->
+    <rect x="214" y="0" width="24" height="24" rx="2"/>
+    <rect x="214" y="40" width="24" height="80" rx="2"/>
+    <!-- E (three bars) -->
+    <path d="M262 0h88v26H290v21h52v26H290v21h60v26H262V0z"/>
+    <!-- G -->
+    <path d="M372 20c18-14 40-20 66-20 28 0 50 8 66 22l-18 22c-12-10-26-16-46-16-30 0-52 20-52 52s22 52 52 52c22 0 38-8 50-22v-18H454V68h78v40c-16 20-44 32-80 32-50 0-88-34-88-80s36-80 80-80z"/>
+    <!-- O -->
+    <path d="M568 60c0-46 34-60 60-60s60 14 60 60-34 60-60 60-60-14-60-60zm32 0c0 28 12 36 28 36s28-8 28-36-12-36-28-36-28 8-28 36z"/>
+  </g>
+</svg>
