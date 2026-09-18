@@ -1699,7 +1699,7 @@ const CIRCLES = [
   { color: "#ff3838", r: 30, px: 0.22, py: 0.40, vx: 0.3, vy: -0.5 },
 ];
 
-const circleScale = isWideDesk() ? 1.42 : 1;
+const circleScale = isWideDesk() ? 1.42 : (isTouch || window.innerWidth <= 720) ? 0.82 : 1;
 const circleItems = CIRCLES.map((spec) => {
   const r = spec.r * circleScale;
   const el = document.createElement("span");
