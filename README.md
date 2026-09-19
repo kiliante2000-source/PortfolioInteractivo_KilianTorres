@@ -63,4 +63,4 @@ Se puede servir la carpeta tal cual (Netlify, Vercel, GitHub Pages, un hosting e
 Kilian Torres  
 kiliante2000@gmail.com  
 +34 617 39 24 21  
-[Instagram @kiliantxrres](https://www.instagram.com/kiliantxrres/)
+23/03/2000
