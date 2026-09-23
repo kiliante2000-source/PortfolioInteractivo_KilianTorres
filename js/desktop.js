@@ -647,17 +647,40 @@ function refreshFinderWindow() {
   bindFinderWindow(win);
 }
 
-function deskButton(id) {
-  return iconsRoot.querySelector(`.desk-icon[data-id="${id}"]`);
+function placeIconHome(btn, icon) {
+  const home = iconHome(icon);
+  btn.style.left = `${home.x}%`;
+  btn.style.top = `${home.y}%`;
+  btn.style.zIndex = "";
+}
+
+function isTrashed(id) {
+  return trashBin.some((item) => item.id === id);
+}
+
+function hideDeskIcon(btn) {
+  if (!btn) return;
+  btn.hidden = true;
+  btn.classList.add("is-trashed");
+  btn.classList.remove("is-dragging", "is-selected");
+  btn.setAttribute("aria-hidden", "true");
+}
+
+function showDeskIcon(btn, icon) {
+  if (!btn) return;
+  btn.hidden = false;
+  btn.classList.remove("is-trashed", "is-dragging");
+  btn.removeAttribute("aria-hidden");
+  placeIconHome(btn, icon);
 }
 
 function trashHTML() {
   if (!trashBin.length) {
-    return `<h2>( Papelera )</h2><p>Vacía. Arrastra carpetas o archivos al cubo del dock para tirarlos. Luego puedes sacarlos de aquí.</p>`;
+    return `<h2>( Papelera )</h2><p>Vacía. Arrastra cualquier carpeta, archivo, vídeo o aplicación al cubo del dock para tirarlo. Luego puedes sacarlo de aquí.</p>`;
   }
   return `
     <h2>( Papelera )</h2>
-    <p>${trashBin.length} ${trashBin.length === 1 ? "archivo" : "archivos"}. Arrástralos al escritorio o pulsa sacar.</p>
+    <p>${trashBin.length} ${trashBin.length === 1 ? "elemento" : "elementos"}. Pulsa sacar o arrástralos fuera: vuelven a su sitio del escritorio.</p>
     <ul class="trash-list">
       ${trashBin
         .map(
@@ -708,7 +731,15 @@ function isOverEl(el, x, y, pad = 0) {
 }
 
 function overTrashDrop(x, y) {
-  return isOverEl(dockTrash, x, y, 22) || isOverEl(windowsRoot.querySelector('[data-id="trash"]'), x, y, 0);
+  return isOverEl(dockTrash, x, y, 28) || isOverEl(windowsRoot.querySelector('[data-id="trash"]'), x, y, 8);
+}
+
+function iconOverTrash(btn) {
+  if (!btn || !dockTrash) return false;
+  const a = btn.getBoundingClientRect();
+  const b = dockTrash.getBoundingClientRect();
+  const pad = 14;
+  return !(a.right < b.left - pad || a.left > b.right + pad || a.bottom < b.top - pad || a.top > b.bottom + pad);
 }
 
 function pointInIcons(clientX, clientY) {
@@ -752,15 +783,18 @@ function flyToTrash(btn) {
 function putInTrash(id) {
   const icon = iconById(id);
   const btn = deskButton(id);
-  if (!icon || !btn || btn.hidden) return;
-  trashBin.push({
-    ...icon,
-    left: btn.style.left,
-    top: btn.style.top,
-  });
+  if (!icon || !btn) return;
+  closeOsWindow(windowsRoot.querySelector(`[data-id="${id}"]`));
+  if (isTrashed(id)) {
+    hideDeskIcon(btn);
+    updateTrashDock();
+    refreshTrashWindow();
+    refreshFinderWindow();
+    return;
+  }
+  trashBin.push({ ...icon });
   flyToTrash(btn);
-  btn.hidden = true;
-  btn.classList.remove("is-dragging", "is-selected");
+  hideDeskIcon(btn);
   bounceDock(dockTrash);
   dockTrash?.classList.add("is-open");
   setTimeout(() => dockTrash?.classList.remove("is-open", "is-drop"), 380);
@@ -769,17 +803,12 @@ function putInTrash(id) {
   refreshFinderWindow();
 }
 
-function restoreFromTrash(id, drop) {
+function restoreFromTrash(id) {
   const stored = trashBin.find((item) => item.id === id);
   const btn = deskButton(id);
   if (!stored || !btn) return;
   trashBin.splice(trashBin.findIndex((item) => item.id === id), 1);
-  btn.hidden = false;
-  const rawL = drop ? drop.left : parseFloat(stored.left) || 0;
-  const rawT = drop ? drop.top : parseFloat(stored.top) || 0;
-  const pos = clampDeskIcon(btn, rawL, rawT);
-  btn.style.left = `${pos.left}px`;
-  btn.style.top = `${pos.top}px`;
+  showDeskIcon(btn, stored);
   document.querySelectorAll(".desk-icon").forEach((n) => n.classList.remove("is-selected"));
   btn.classList.add("is-selected");
   updateTrashDock();
@@ -794,7 +823,11 @@ function enableTrashRowDrag(row) {
   row.addEventListener("pointerdown", (e) => {
     if (e.target.closest("button")) return;
     start = { x: e.clientX, y: e.clientY };
-    row.setPointerCapture(e.pointerId);
+    try {
+      row.setPointerCapture(e.pointerId);
+    } catch (_) {
+      /* synthetic or already-released pointers */
+    }
   });
   row.addEventListener("pointermove", (e) => {
     if (!start) return;
@@ -815,7 +848,7 @@ function enableTrashRowDrag(row) {
     document.body.classList.remove("is-file-drag");
     dockTrash?.classList.remove("is-drop", "is-open");
     if (start && e && !overTrashDrop(e.clientX, e.clientY) && Math.hypot(e.clientX - start.x, e.clientY - start.y) > 10) {
-      restoreFromTrash(id, pointInIcons(e.clientX, e.clientY));
+      restoreFromTrash(id);
     }
     start = null;
   };
@@ -1106,6 +1139,10 @@ function enableResize(win) {
 function openWindow(id) {
   if (id === "cv") {
     window.location.href = "index.html";
+    return;
+  }
+  if (iconById(id) && isTrashed(id)) {
+    openWindow("trash");
     return;
   }
   const spec = WINDOWS[id];
@@ -1567,7 +1604,11 @@ ICONS.forEach((icon) => {
     e.preventDefault();
     moved = false;
     start = { x: e.clientX, y: e.clientY, left: btn.offsetLeft, top: btn.offsetTop };
-    btn.setPointerCapture(e.pointerId);
+    try {
+      btn.setPointerCapture(e.pointerId);
+    } catch (_) {
+      /* synthetic or already-released pointers */
+    }
     document.querySelectorAll(".desk-icon").forEach((n) => n.classList.remove("is-selected"));
     btn.classList.add("is-selected");
   });
@@ -1592,13 +1633,13 @@ ICONS.forEach((icon) => {
 
     const endDrag = (e) => {
       if (!start) return;
-      const dropped = moved && e && overTrashDrop(e.clientX, e.clientY);
+      const dropped = moved && e && (overTrashDrop(e.clientX, e.clientY) || iconOverTrash(btn));
       start = null;
       btn.classList.remove("is-dragging");
       document.body.classList.remove("is-file-drag");
       dockTrash?.classList.remove("is-drop", "is-open");
       if (dropped) putInTrash(icon.id);
-      else if (!moved) openWindow(icon.id);
+      else if (!moved && e.type !== "pointercancel") openWindow(icon.id);
     };
 
   btn.addEventListener("pointerup", endDrag);

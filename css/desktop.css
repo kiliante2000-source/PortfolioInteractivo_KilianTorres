@@ -504,6 +504,11 @@ button {
   pointer-events: auto;
 }
 
+.desk-icon[hidden],
+.desk-icon.is-trashed {
+  display: none !important;
+}
+
 .desk-icon *,
 .icon-photo,
 .icon-app {
