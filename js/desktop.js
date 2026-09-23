@@ -596,6 +596,11 @@ function iconById(id) {
   return ICONS.find((icon) => icon.id === id);
 }
 
+function deskButton(id) {
+  if (!id || !iconsRoot) return null;
+  return iconsRoot.querySelector(`.desk-icon[data-id="${id}"]`);
+}
+
 function kindLabel(type) {
   if (type === "app") return "app";
   if (type === "folder") return "carpeta";
@@ -747,11 +752,12 @@ function pointInIcons(clientX, clientY) {
   return clampDeskIcon(null, clientX - parent.left - 46, clientY - parent.top - 28);
 }
 
-function clampDeskIcon(btn, left, top) {
+function clampDeskIcon(btn, left, top, allowDock = false) {
   const w = btn?.offsetWidth || 92;
   const h = btn?.offsetHeight || 88;
   const maxL = Math.max(0, iconsRoot.clientWidth - w);
-  const maxT = Math.max(0, iconsRoot.clientHeight - h);
+  const extra = allowDock ? Math.round(h * 0.85) : 0;
+  const maxT = Math.max(0, iconsRoot.clientHeight - h + extra);
   return {
     left: Math.min(maxL, Math.max(0, left)),
     top: Math.min(maxT, Math.max(0, top)),
@@ -759,48 +765,57 @@ function clampDeskIcon(btn, left, top) {
 }
 
 function flyToTrash(btn) {
-  const from = btn.getBoundingClientRect();
-  const to = dockTrash?.getBoundingClientRect();
-  if (!to) return;
-  const ghost = btn.cloneNode(true);
-  ghost.classList.add("desk-ghost");
-  ghost.style.left = `${from.left}px`;
-  ghost.style.top = `${from.top}px`;
-  ghost.style.width = `${from.width}px`;
-  document.body.appendChild(ghost);
-  const dx = to.left + to.width / 2 - from.width / 2 - from.left;
-  const dy = to.top + to.height / 2 - from.height / 2 - from.top;
-  const anim = ghost.animate(
-    [
-      { transform: "translate(0, 0) scale(1)", opacity: 1 },
-      { transform: `translate(${dx}px, ${dy}px) scale(0.18)`, opacity: 0.15 },
-    ],
-    { duration: prefersReduced ? 1 : 420, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)" }
-  );
-  anim.finished.then(() => ghost.remove()).catch(() => ghost.remove());
+  try {
+    const from = btn.getBoundingClientRect();
+    const to = dockTrash?.getBoundingClientRect();
+    if (!to || !from.width) return;
+    const ghost = btn.cloneNode(true);
+    ghost.hidden = false;
+    ghost.classList.remove("is-trashed");
+    ghost.classList.add("desk-ghost");
+    ghost.style.left = `${from.left}px`;
+    ghost.style.top = `${from.top}px`;
+    ghost.style.width = `${from.width}px`;
+    document.body.appendChild(ghost);
+    const dx = to.left + to.width / 2 - from.width / 2 - from.left;
+    const dy = to.top + to.height / 2 - from.height / 2 - from.top;
+    const anim = ghost.animate(
+      [
+        { transform: "translate(0, 0) scale(1)", opacity: 1 },
+        { transform: `translate(${dx}px, ${dy}px) scale(0.18)`, opacity: 0.15 },
+      ],
+      { duration: prefersReduced ? 1 : 420, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)" }
+    );
+    const done = () => ghost.remove();
+    if (anim && anim.finished) anim.finished.then(done).catch(done);
+    else setTimeout(done, 420);
+  } catch (_) {
+    /* drop still succeeds without the fly animation */
+  }
 }
 
 function putInTrash(id) {
   const icon = iconById(id);
   const btn = deskButton(id);
   if (!icon || !btn) return;
-  closeOsWindow(windowsRoot.querySelector(`[data-id="${id}"]`));
-  if (isTrashed(id)) {
-    hideDeskIcon(btn);
+  if (!isTrashed(id)) trashBin.push({ ...icon });
+  flyToTrash(btn);
+  hideDeskIcon(btn);
+  try {
+    closeOsWindow(windowsRoot.querySelector(`[data-id="${id}"]`));
+  } catch (_) {
+    /* icon is already off the desk */
+  }
+  try {
+    bounceDock(dockTrash);
+    dockTrash?.classList.add("is-open");
+    setTimeout(() => dockTrash?.classList.remove("is-open", "is-drop"), 380);
     updateTrashDock();
     refreshTrashWindow();
     refreshFinderWindow();
-    return;
+  } catch (_) {
+    /* trash list can refresh on next open */
   }
-  trashBin.push({ ...icon });
-  flyToTrash(btn);
-  hideDeskIcon(btn);
-  bounceDock(dockTrash);
-  dockTrash?.classList.add("is-open");
-  setTimeout(() => dockTrash?.classList.remove("is-open", "is-drop"), 380);
-  updateTrashDock();
-  refreshTrashWindow();
-  refreshFinderWindow();
 }
 
 function restoreFromTrash(id) {
@@ -1584,6 +1599,53 @@ function makeDraggable(el, handle, onMove) {
   target.addEventListener("pointercancel", end);
 }
 
+let deskDrag = null;
+
+function stopDeskDragListen() {
+  window.removeEventListener("pointermove", onDeskDragMove, true);
+  window.removeEventListener("pointerup", onDeskDragEnd, true);
+  window.removeEventListener("pointercancel", onDeskDragEnd, true);
+}
+
+function onDeskDragMove(e) {
+  if (!deskDrag || e.pointerId !== deskDrag.pointerId) return;
+  const { btn, start } = deskDrag;
+  deskDrag.lastX = e.clientX;
+  deskDrag.lastY = e.clientY;
+  const dx = e.clientX - start.x;
+  const dy = e.clientY - start.y;
+  if (Math.hypot(dx, dy) <= 4 && !deskDrag.moved) return;
+  deskDrag.moved = true;
+  btn.classList.add("is-dragging");
+  btn.style.zIndex = "24";
+  document.body.classList.add("is-file-drag");
+  const pos = clampDeskIcon(btn, start.left + dx, start.top + dy, true);
+  btn.style.left = `${pos.left}px`;
+  btn.style.top = `${pos.top}px`;
+  const over = overTrashDrop(e.clientX, e.clientY) || iconOverTrash(btn);
+  deskDrag.overTrash = over;
+  dockTrash?.classList.toggle("is-drop", over);
+  dockTrash?.classList.toggle("is-open", true);
+}
+
+function onDeskDragEnd(e) {
+  if (!deskDrag) return;
+  if (e && e.pointerId !== deskDrag.pointerId) return;
+  const drag = deskDrag;
+  deskDrag = null;
+  stopDeskDragListen();
+  const x = e && Number.isFinite(e.clientX) ? e.clientX : drag.lastX;
+  const y = e && Number.isFinite(e.clientY) ? e.clientY : drag.lastY;
+  const dropped =
+    drag.moved &&
+    (drag.overTrash || overTrashDrop(x, y) || iconOverTrash(drag.btn));
+  drag.btn.classList.remove("is-dragging");
+  document.body.classList.remove("is-file-drag");
+  dockTrash?.classList.remove("is-drop", "is-open");
+  if (dropped) putInTrash(drag.icon.id);
+  else if (!drag.moved && e && e.type !== "pointercancel") openWindow(drag.icon.id);
+}
+
 ICONS.forEach((icon) => {
   const btn = document.createElement("button");
   btn.className = "desk-icon";
@@ -1595,55 +1657,34 @@ ICONS.forEach((icon) => {
   btn.innerHTML = `${glyphFor(icon)}<span class="label">${icon.label}</span>`;
   iconsRoot.appendChild(btn);
 
-  let moved = false;
-  let start = null;
-
   btn.addEventListener("dragstart", (e) => e.preventDefault());
 
   btn.addEventListener("pointerdown", (e) => {
+    if (e.button != null && e.button !== 0) return;
     e.preventDefault();
-    moved = false;
-    start = { x: e.clientX, y: e.clientY, left: btn.offsetLeft, top: btn.offsetTop };
-    try {
-      btn.setPointerCapture(e.pointerId);
-    } catch (_) {
-      /* synthetic or already-released pointers */
-    }
+    e.stopPropagation();
+    stopDeskDragListen();
+    deskDrag = {
+      btn,
+      icon,
+      moved: false,
+      overTrash: false,
+      pointerId: e.pointerId,
+      lastX: e.clientX,
+      lastY: e.clientY,
+      start: {
+        x: e.clientX,
+        y: e.clientY,
+        left: btn.offsetLeft,
+        top: btn.offsetTop,
+      },
+    };
     document.querySelectorAll(".desk-icon").forEach((n) => n.classList.remove("is-selected"));
     btn.classList.add("is-selected");
+    window.addEventListener("pointermove", onDeskDragMove, true);
+    window.addEventListener("pointerup", onDeskDragEnd, true);
+    window.addEventListener("pointercancel", onDeskDragEnd, true);
   });
-
-  btn.addEventListener("pointermove", (e) => {
-    if (!start) return;
-    const dx = e.clientX - start.x;
-    const dy = e.clientY - start.y;
-    if (Math.hypot(dx, dy) > 4) {
-      moved = true;
-      btn.classList.add("is-dragging");
-      btn.style.zIndex = "24";
-      document.body.classList.add("is-file-drag");
-      const pos = clampDeskIcon(btn, start.left + dx, start.top + dy);
-      btn.style.left = `${pos.left}px`;
-      btn.style.top = `${pos.top}px`;
-      const over = overTrashDrop(e.clientX, e.clientY);
-      dockTrash?.classList.toggle("is-drop", over);
-      dockTrash?.classList.toggle("is-open", true);
-    }
-  });
-
-    const endDrag = (e) => {
-      if (!start) return;
-      const dropped = moved && e && (overTrashDrop(e.clientX, e.clientY) || iconOverTrash(btn));
-      start = null;
-      btn.classList.remove("is-dragging");
-      document.body.classList.remove("is-file-drag");
-      dockTrash?.classList.remove("is-drop", "is-open");
-      if (dropped) putInTrash(icon.id);
-      else if (!moved && e.type !== "pointercancel") openWindow(icon.id);
-    };
-
-  btn.addEventListener("pointerup", endDrag);
-  btn.addEventListener("pointercancel", endDrag);
 });
 
 document.querySelectorAll("[data-window]").forEach((el) => {

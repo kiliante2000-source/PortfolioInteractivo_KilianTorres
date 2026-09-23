@@ -488,6 +488,11 @@ button {
   pointer-events: none;
 }
 
+body.is-file-drag .icons {
+  overflow: visible;
+  z-index: 26;
+}
+
 .desk-icon {
   position: absolute;
   width: 92px;
