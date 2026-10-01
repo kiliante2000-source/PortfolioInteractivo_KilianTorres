@@ -119,13 +119,13 @@ function folderWindowHTML(id, title, lead, dir) {
       </div>
       <div class="folder-viewer" hidden>
         <div class="folder-viewer-bar">
+          <button type="button" class="ghost-btn folder-viewer-close">atrás</button>
           <span class="folder-viewer-name"></span>
           <div class="folder-zoom">
             <button type="button" class="folder-zoom-out" aria-label="Reducir">−</button>
             <button type="button" class="folder-zoom-in" aria-label="Ampliar">+</button>
           </div>
-          <button type="button" class="ghost-btn folder-viewer-full">pantalla completa</button>
-          <button type="button" class="ghost-btn folder-viewer-close">cerrar</button>
+          <button type="button" class="ghost-btn folder-viewer-full">completa</button>
         </div>
         <div class="folder-viewer-stage">
           <img class="folder-viewer-img" alt="" draggable="false" />
@@ -1324,10 +1324,17 @@ function bindPdfRows(win) {
 }
 
 function openFolderLightbox(win) {
-  const img = win.querySelector(".folder-viewer-img");
-  const name = win.querySelector(".folder-viewer-name")?.textContent || "";
-  const src = img?.currentSrc || img?.getAttribute("src");
-  if (src) openLightbox(src, name);
+  const name = win.dataset.preview;
+  const dir = win.dataset.previewDir || win.dataset.id;
+  const files = FOLDER_FILES[dir] || FOLDER_FILES[win.dataset.id] || [];
+  const src = folderPreviewSrc(dir, name);
+  if (!name || !src) return;
+  openLightbox(src, name, {
+    folderId: win.dataset.id,
+    dir,
+    files,
+    index: Math.max(0, files.indexOf(name)),
+  });
 }
 
 function bindPhotoWindow(win) {
@@ -1358,6 +1365,7 @@ function enableImageZoom(stage, img, options = {}) {
   let pan0 = null;
   let lastTap = 0;
   let downAt = null;
+  let swipe0 = null;
 
   const apply = () => {
     const extraW = (stage.clientWidth * (z.scale - 1)) / 2;
@@ -1425,6 +1433,7 @@ function enableImageZoom(stage, img, options = {}) {
     if (e.button && e.button !== 0) return;
     e.stopPropagation();
     downAt = { x: e.clientX, y: e.clientY };
+    swipe0 = { x: e.clientX, y: e.clientY };
     try {
       stage.setPointerCapture(e.pointerId);
     } catch (_) {
@@ -1483,11 +1492,19 @@ function enableImageZoom(stage, img, options = {}) {
       z.scale <= 1.01 &&
       pointers.size === 1 &&
       Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) < 8;
+    let swipeDir = 0;
+    if (options.onSwipe && swipe0 && z.scale <= 1.01 && pointers.size === 1) {
+      const dx = e.clientX - swipe0.x;
+      const dy = e.clientY - swipe0.y;
+      if (Math.abs(dx) > 56 && Math.abs(dx) > Math.abs(dy) * 1.4) swipeDir = dx < 0 ? 1 : -1;
+    }
     pointers.delete(e.pointerId);
     if (pointers.size < 2) pinch0 = null;
     if (pointers.size === 0) pan0 = null;
     downAt = null;
+    swipe0 = null;
     if (shouldExpand) options.onExpand();
+    else if (swipeDir) options.onSwipe(swipeDir);
   };
   stage.addEventListener("pointerup", endPointer);
   stage.addEventListener("pointercancel", endPointer);
@@ -1496,6 +1513,7 @@ function enableImageZoom(stage, img, options = {}) {
 }
 
 let lightboxEl = null;
+let lightboxAlbum = null;
 
 function ensureLightbox() {
   if (lightboxEl) return lightboxEl;
@@ -1508,6 +1526,7 @@ function ensureLightbox() {
   el.setAttribute("aria-modal", "true");
   el.innerHTML = `
     <div class="lightbox-bar">
+      <button type="button" class="ghost-btn lightbox-folder">volver a la carpeta</button>
       <span class="lightbox-name"></span>
       <p class="lightbox-hint">rueda · pellizca · arrastra</p>
       <div class="folder-zoom">
@@ -1516,32 +1535,57 @@ function ensureLightbox() {
       </div>
       <button type="button" class="ghost-btn lightbox-close">cerrar</button>
     </div>
+    <button type="button" class="lightbox-nav lightbox-prev" aria-label="Anterior">‹</button>
+    <button type="button" class="lightbox-nav lightbox-next" aria-label="Siguiente">›</button>
     <div class="lightbox-stage folder-viewer-stage">
       <img class="lightbox-img folder-viewer-img" alt="" draggable="false" nopin="nopin" />
     </div>`;
   root.appendChild(el);
   const stage = el.querySelector(".lightbox-stage");
   const img = el.querySelector(".lightbox-img");
-  const zoom = enableImageZoom(stage, img, { max: 5.5 });
+  const zoom = enableImageZoom(stage, img, {
+    max: 5.5,
+    onSwipe: (dir) => lightboxStep(dir),
+  });
   el._resetLightboxZoom = zoom.reset;
   el.querySelector(".lightbox-close").addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
     closeLightbox();
   });
+  el.querySelector(".lightbox-folder").addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    lightboxBackToFolder();
+  });
+  el.querySelector(".lightbox-prev").addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    lightboxStep(-1);
+  });
+  el.querySelector(".lightbox-next").addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    lightboxStep(1);
+  });
   lightboxEl = el;
   return el;
 }
 
-function openLightbox(src, name) {
-  if (!src) return;
+function syncLightboxChrome() {
+  if (!lightboxEl) return;
+  const album = lightboxAlbum && lightboxAlbum.files.length > 1;
+  lightboxEl.querySelector(".lightbox-prev").hidden = !album;
+  lightboxEl.querySelector(".lightbox-next").hidden = !album;
+  lightboxEl.querySelector(".lightbox-folder").hidden = !lightboxAlbum;
+}
+
+function showLightboxImage(src, name) {
   const el = ensureLightbox();
   const img = el.querySelector(".lightbox-img");
   const nameEl = el.querySelector(".lightbox-name");
   if (nameEl) nameEl.textContent = name || "";
   img.alt = name || "";
-  el.hidden = false;
-  document.body.classList.add("is-lightbox");
   const show = () => el._resetLightboxZoom?.();
   if (img.getAttribute("src") === src && img.complete && img.naturalWidth) {
     show();
@@ -1551,13 +1595,45 @@ function openLightbox(src, name) {
   }
 }
 
+function openLightbox(src, name, album) {
+  if (!src) return;
+  lightboxAlbum = album || null;
+  const el = ensureLightbox();
+  el.hidden = false;
+  document.body.classList.add("is-lightbox");
+  syncLightboxChrome();
+  showLightboxImage(src, name);
+}
+
+function lightboxStep(delta) {
+  if (!lightboxAlbum?.files?.length) return;
+  const n = lightboxAlbum.files.length;
+  lightboxAlbum.index = (lightboxAlbum.index + delta + n) % n;
+  const name = lightboxAlbum.files[lightboxAlbum.index];
+  const src = folderPreviewSrc(lightboxAlbum.dir, name);
+  showLightboxImage(src, name);
+  const win = windowsRoot.querySelector(`[data-id="${lightboxAlbum.folderId}"]`);
+  if (win) openFolderPreview(win, lightboxAlbum.dir, name);
+}
+
+function lightboxBackToFolder() {
+  const album = lightboxAlbum;
+  closeLightbox();
+  if (!album?.folderId) return;
+  openWindow(album.folderId);
+  const win = windowsRoot.querySelector(`[data-id="${album.folderId}"]`);
+  if (win) closeFolderPreview(win);
+}
+
 function closeLightbox() {
   if (!lightboxEl || lightboxEl.hidden) return;
   lightboxEl.hidden = true;
   document.body.classList.remove("is-lightbox");
+  lightboxAlbum = null;
   const img = lightboxEl.querySelector(".lightbox-img");
   if (img) img.style.transform = "";
   lightboxEl._resetLightboxZoom?.();
+  syncLightboxChrome();
 }
 
 function layoutFolderPreview(win) {
@@ -1566,9 +1642,9 @@ function layoutFolderPreview(win) {
   const vbar = win.querySelector(".folder-viewer-bar");
   if (!img || !stage || !img.naturalWidth) return;
 
-  const PAD = 16;
+  const PAD = 10;
   const FRAME = 3;
-  const GAP = 16;
+  const GAP = 8;
   const { maxW, maxH } = deskWorkArea();
   const chrome = win.querySelector(".window-bar")?.offsetHeight || 36;
   const tool = vbar?.offsetHeight || 32;
@@ -1620,11 +1696,14 @@ function openFolderPreview(win, dir, name) {
   }
 
   win.dataset.preview = name;
+  win.dataset.previewDir = dir;
   win.classList.add("is-previewing");
   win.querySelectorAll(".file-link").forEach((btn) => {
     btn.closest("li")?.classList.toggle("is-open", btn.dataset.pdfName === name);
   });
   if (nameEl) nameEl.textContent = name;
+  const title = win.querySelector(".window-title");
+  if (title) title.textContent = name;
   viewer.hidden = false;
   img.alt = name;
   img.style.transform = "";
@@ -1643,10 +1722,13 @@ function openFolderPreview(win, dir, name) {
 function closeFolderPreview(win) {
   if (!win.dataset.preview) return;
   delete win.dataset.preview;
+  delete win.dataset.previewDir;
   win.classList.remove("is-previewing");
   const viewer = win.querySelector(".folder-viewer");
   if (viewer) viewer.hidden = true;
   win.querySelectorAll(".file-list li.is-open").forEach((li) => li.classList.remove("is-open"));
+  const title = win.querySelector(".window-title");
+  if (title) title.textContent = WINDOWS[win.dataset.id]?.title || title.textContent;
   const img = win.querySelector(".folder-viewer-img");
   const stage = win.querySelector(".folder-viewer-stage");
   if (img) {
@@ -1911,11 +1993,23 @@ function cycleFolderColor(id) {
 }
 
 document.addEventListener("keydown", (e) => {
-  if (e.key !== "Escape") return;
   if (document.body.classList.contains("is-lightbox")) {
-    closeLightbox();
-    return;
+    if (e.key === "Escape") {
+      closeLightbox();
+      return;
+    }
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      lightboxStep(-1);
+      return;
+    }
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      lightboxStep(1);
+      return;
+    }
   }
+  if (e.key !== "Escape") return;
   const top = [...windowsRoot.querySelectorAll(".window")].sort(
     (a, b) => Number(b.style.zIndex) - Number(a.style.zIndex)
   )[0];
