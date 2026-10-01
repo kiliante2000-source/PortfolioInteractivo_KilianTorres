@@ -888,9 +888,30 @@ function bringToFront(win) {
   dockItemFor(win.dataset.id)?.classList.remove("has-min");
 }
 
+function deskWorkArea() {
+  const chrome =
+    parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--chrome-top")) || 72;
+  const frame = windowsRoot.getBoundingClientRect();
+  const dock = document.querySelector(".dock");
+  let dockTop = frame.height - (isWideDesk() ? 128 : 108);
+  if (dock) {
+    const dr = dock.getBoundingClientRect();
+    dockTop = dr.top - frame.top;
+  }
+  const gap = 14;
+  const top = chrome + 8;
+  const bottom = Math.max(top + 180, dockTop - gap);
+  return {
+    chrome,
+    top,
+    bottom,
+    maxW: Math.max(240, windowsRoot.clientWidth - 28),
+    maxH: Math.max(180, bottom - top),
+  };
+}
+
 function sizeWindow(win, id) {
-  const maxW = Math.max(240, windowsRoot.clientWidth - 28);
-  const maxH = Math.max(180, windowsRoot.clientHeight - 28);
+  const { maxW, maxH } = deskWorkArea();
   const wide = isWideDesk();
   const sizes = wide
     ? {
@@ -953,6 +974,7 @@ function fitWindowHeight(win, maxH) {
   const body = win.querySelector(".window-body");
   if (body) {
     body.style.flex = "0 0 auto";
+    body.style.minHeight = "";
     body.style.overflow = "visible";
   }
   win.style.height = "auto";
@@ -960,7 +982,13 @@ function fitWindowHeight(win, maxH) {
   const height = Math.min(maxH, needed);
   win.style.height = `${Math.round(height)}px`;
   if (body) {
-    body.style.overflow = needed > maxH ? "auto" : "hidden";
+    if (needed > maxH) {
+      body.style.flex = "1 1 0";
+      body.style.minHeight = "0";
+      body.style.overflow = "auto";
+    } else {
+      body.style.overflow = "hidden";
+    }
   }
 }
 
@@ -1028,8 +1056,7 @@ function syncVideoCinema(win) {
   win.classList.toggle("is-cinema", cinema);
   document.body.classList.toggle("is-cinema", cinema);
   if (!cinema) {
-    const maxW = Math.max(240, windowsRoot.clientWidth - 28);
-    const maxH = Math.max(180, windowsRoot.clientHeight - 28);
+    const { maxW, maxH } = deskWorkArea();
     sizeVideoWindow(win, maxW, maxH);
   }
 }
@@ -1047,14 +1074,14 @@ function pauseWindowMedia(win) {
 function placeWindow(win) {
   if (!win || win.classList.contains("is-max") || win.classList.contains("is-cinema")) return;
   const parent = windowsRoot.getBoundingClientRect();
+  const area = deskWorkArea();
   const w = win.offsetWidth || parseFloat(win.style.width) || 300;
   const h = win.offsetHeight || parseFloat(win.style.height) || 200;
-  const chrome =
-    parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--chrome-top")) || 72;
   const left = Math.round((parent.width - w) / 2);
-  const top = Math.round((parent.height - h) / 2);
+  const room = area.bottom - area.top;
+  const top = Math.round(area.top + Math.max(0, (room - h) / 2));
   win.style.left = `${Math.max(10, left)}px`;
-  win.style.top = `${Math.max(chrome + 8, top)}px`;
+  win.style.top = `${Math.max(area.top, Math.min(top, area.bottom - h))}px`;
 }
 
 function placeWindowSoon(win) {
@@ -1420,8 +1447,7 @@ function layoutFolderPreview(win) {
   const PAD = 16;
   const FRAME = 3;
   const GAP = 16;
-  const maxW = Math.max(240, windowsRoot.clientWidth - 28);
-  const maxH = Math.max(180, windowsRoot.clientHeight - 28);
+  const { maxW, maxH } = deskWorkArea();
   const chrome = win.querySelector(".window-bar")?.offsetHeight || 36;
   const tool = vbar?.offsetHeight || 32;
   const ratio = img.naturalWidth / img.naturalHeight;
