@@ -30,7 +30,7 @@
 
   const isMedia = (node) =>
     node?.closest?.(
-      "img, video, canvas, picture, .portrait, .photo-open, .signature, .folder-viewer-img, .brand-open, .icon-photo, .icon-thumb"
+      "img, video, canvas, picture, .portrait, .photo-open, .signature, .folder-viewer-img, .lightbox-img, .brand-open, .icon-photo, .icon-thumb"
     );
 
   document.addEventListener("contextmenu", (e) => {
