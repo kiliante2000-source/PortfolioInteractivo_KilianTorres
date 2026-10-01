@@ -1195,18 +1195,15 @@ body.is-cinema {
 }
 
 .brand-frame-magua {
-  overflow: visible;
+  overflow: hidden;
   border: 0;
   background: transparent;
-  height: auto;
 }
 
 .brand-frame-magua .brand-open {
   border: 0;
-  width: 92px;
-  height: auto;
   object-fit: contain;
-  padding: 0;
+  object-position: center;
   background: transparent;
 }
 
@@ -1837,10 +1834,6 @@ body.is-file-drag .dock-trash .trash-lid {
     width: 124px;
     min-width: 124px;
     height: 124px;
-  }
-
-  .brand-frame-magua .brand-open {
-    width: 124px;
   }
 
   .ghost-btn {
