@@ -124,6 +124,7 @@ function folderWindowHTML(id, title, lead, dir) {
             <button type="button" class="folder-zoom-out" aria-label="Reducir">−</button>
             <button type="button" class="folder-zoom-in" aria-label="Ampliar">+</button>
           </div>
+          <button type="button" class="ghost-btn folder-viewer-full">pantalla completa</button>
           <button type="button" class="ghost-btn folder-viewer-close">cerrar</button>
         </div>
         <div class="folder-viewer-stage">
@@ -1220,6 +1221,7 @@ function openWindow(id) {
   if (id === "trash") bindTrashWindow(win);
   if (id === "finder") bindFinderWindow(win);
   if (isFolderId(id)) bindPdfRows(win);
+  if (id === "photo") bindPhotoWindow(win);
   if (id === "magua-video") bindVideoWindow(win);
   if (id === "mail") bindMailWindow(win);
   wireWindow(win, id);
@@ -1287,12 +1289,19 @@ function bindMailWindow(win) {
 
 function bindPdfRows(win) {
   const closeBtn = win.querySelector(".folder-viewer-close");
+  const fullBtn = win.querySelector(".folder-viewer-full");
   bindFolderZoom(win);
 
   closeBtn?.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
     closeFolderPreview(win);
+  });
+
+  fullBtn?.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openFolderLightbox(win);
   });
 
   win.querySelectorAll("[data-pdf-dir]").forEach((btn) => {
@@ -1309,22 +1318,46 @@ function bindPdfRows(win) {
   });
 
   win.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && document.body.classList.contains("is-lightbox")) return;
     if (e.key === "Escape" && win.dataset.preview) closeFolderPreview(win);
+  });
+}
+
+function openFolderLightbox(win) {
+  const img = win.querySelector(".folder-viewer-img");
+  const name = win.querySelector(".folder-viewer-name")?.textContent || "";
+  const src = img?.currentSrc || img?.getAttribute("src");
+  if (src) openLightbox(src, name);
+}
+
+function bindPhotoWindow(win) {
+  const img = win.querySelector(".photo-open");
+  if (!img) return;
+  img.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openLightbox(img.currentSrc || img.src, "Kilian.png");
   });
 }
 
 function bindFolderZoom(win) {
   const stage = win.querySelector(".folder-viewer-stage");
   const img = win.querySelector(".folder-viewer-img");
-  const zoomIn = win.querySelector(".folder-zoom-in");
-  const zoomOut = win.querySelector(".folder-zoom-out");
   if (!stage || !img) return;
+  const zoom = enableImageZoom(stage, img, {
+    max: 4,
+    onExpand: () => openFolderLightbox(win),
+  });
+  win._resetFolderZoom = zoom.reset;
+}
 
-  const z = { scale: 1, x: 0, y: 0, min: 1, max: 4 };
+function enableImageZoom(stage, img, options = {}) {
+  const z = { scale: 1, x: 0, y: 0, min: 1, max: options.max || 4 };
   const pointers = new Map();
   let pinch0 = null;
   let pan0 = null;
   let lastTap = 0;
+  let downAt = null;
 
   const apply = () => {
     const extraW = (stage.clientWidth * (z.scale - 1)) / 2;
@@ -1358,12 +1391,15 @@ function bindFolderZoom(win) {
     apply();
   };
 
-  win._resetFolderZoom = () => {
+  const reset = () => {
     z.scale = 1;
     z.x = 0;
     z.y = 0;
     apply();
   };
+
+  const zoomIn = stage.parentElement?.querySelector(".folder-zoom-in");
+  const zoomOut = stage.parentElement?.querySelector(".folder-zoom-out");
 
   zoomIn?.addEventListener("click", (e) => {
     e.preventDefault();
@@ -1388,12 +1424,22 @@ function bindFolderZoom(win) {
   stage.addEventListener("pointerdown", (e) => {
     if (e.button && e.button !== 0) return;
     e.stopPropagation();
-    stage.setPointerCapture(e.pointerId);
+    downAt = { x: e.clientX, y: e.clientY };
+    try {
+      stage.setPointerCapture(e.pointerId);
+    } catch (_) {
+      /* capture is optional */
+    }
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
     const now = performance.now();
     if (pointers.size === 1 && now - lastTap < 280) {
       lastTap = 0;
+      downAt = null;
+      if (options.onExpand && z.scale <= 1.05) {
+        options.onExpand();
+        return;
+      }
       if (z.scale > 1.05) zoomTo(1, e.clientX, e.clientY);
       else zoomTo(2.35, e.clientX, e.clientY);
       return;
@@ -1417,6 +1463,7 @@ function bindFolderZoom(win) {
   stage.addEventListener("pointermove", (e) => {
     if (!pointers.has(e.pointerId)) return;
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (downAt && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8) downAt = null;
     if (pointers.size === 2 && pinch0) {
       const [a, b] = [...pointers.values()];
       const dist = Math.hypot(a.x - b.x, a.y - b.y) || 1;
@@ -1430,12 +1477,87 @@ function bindFolderZoom(win) {
   });
 
   const endPointer = (e) => {
+    const shouldExpand =
+      options.onExpand &&
+      downAt &&
+      z.scale <= 1.01 &&
+      pointers.size === 1 &&
+      Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) < 8;
     pointers.delete(e.pointerId);
     if (pointers.size < 2) pinch0 = null;
     if (pointers.size === 0) pan0 = null;
+    downAt = null;
+    if (shouldExpand) options.onExpand();
   };
   stage.addEventListener("pointerup", endPointer);
   stage.addEventListener("pointercancel", endPointer);
+
+  return { reset, zoomTo };
+}
+
+let lightboxEl = null;
+
+function ensureLightbox() {
+  if (lightboxEl) return lightboxEl;
+  const root = document.getElementById("os-frame");
+  const el = document.createElement("div");
+  el.className = "desk-lightbox";
+  el.id = "desk-lightbox";
+  el.hidden = true;
+  el.setAttribute("role", "dialog");
+  el.setAttribute("aria-modal", "true");
+  el.innerHTML = `
+    <div class="lightbox-bar">
+      <span class="lightbox-name"></span>
+      <p class="lightbox-hint">rueda · pellizca · arrastra</p>
+      <div class="folder-zoom">
+        <button type="button" class="folder-zoom-out" aria-label="Reducir">−</button>
+        <button type="button" class="folder-zoom-in" aria-label="Ampliar">+</button>
+      </div>
+      <button type="button" class="ghost-btn lightbox-close">cerrar</button>
+    </div>
+    <div class="lightbox-stage folder-viewer-stage">
+      <img class="lightbox-img folder-viewer-img" alt="" draggable="false" nopin="nopin" />
+    </div>`;
+  root.appendChild(el);
+  const stage = el.querySelector(".lightbox-stage");
+  const img = el.querySelector(".lightbox-img");
+  const zoom = enableImageZoom(stage, img, { max: 5.5 });
+  el._resetLightboxZoom = zoom.reset;
+  el.querySelector(".lightbox-close").addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    closeLightbox();
+  });
+  lightboxEl = el;
+  return el;
+}
+
+function openLightbox(src, name) {
+  if (!src) return;
+  const el = ensureLightbox();
+  const img = el.querySelector(".lightbox-img");
+  const nameEl = el.querySelector(".lightbox-name");
+  if (nameEl) nameEl.textContent = name || "";
+  img.alt = name || "";
+  el.hidden = false;
+  document.body.classList.add("is-lightbox");
+  const show = () => el._resetLightboxZoom?.();
+  if (img.getAttribute("src") === src && img.complete && img.naturalWidth) {
+    show();
+  } else {
+    img.addEventListener("load", show, { once: true });
+    img.src = src;
+  }
+}
+
+function closeLightbox() {
+  if (!lightboxEl || lightboxEl.hidden) return;
+  lightboxEl.hidden = true;
+  document.body.classList.remove("is-lightbox");
+  const img = lightboxEl.querySelector(".lightbox-img");
+  if (img) img.style.transform = "";
+  lightboxEl._resetLightboxZoom?.();
 }
 
 function layoutFolderPreview(win) {
@@ -1789,12 +1911,15 @@ function cycleFolderColor(id) {
 }
 
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") {
-    const top = [...windowsRoot.querySelectorAll(".window")].sort(
-      (a, b) => Number(b.style.zIndex) - Number(a.style.zIndex)
-    )[0];
-    closeOsWindow(top);
+  if (e.key !== "Escape") return;
+  if (document.body.classList.contains("is-lightbox")) {
+    closeLightbox();
+    return;
   }
+  const top = [...windowsRoot.querySelectorAll(".window")].sort(
+    (a, b) => Number(b.style.zIndex) - Number(a.style.zIndex)
+  )[0];
+  closeOsWindow(top);
 });
 
 const circlesLayer = document.getElementById("circles");
