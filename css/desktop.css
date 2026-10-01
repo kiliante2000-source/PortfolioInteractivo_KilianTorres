@@ -644,7 +644,7 @@ body.is-file-drag .icons {
 .windows {
   position: absolute;
   inset: 0;
-  z-index: 16;
+  z-index: 24;
   pointer-events: none;
 }
 
@@ -654,6 +654,7 @@ body.is-file-drag .icons {
   height: 200px;
   min-width: 220px;
   min-height: 140px;
+  max-height: calc(100% - var(--chrome-top) - 108px);
   display: flex;
   flex-direction: column;
   background: var(--paper);
@@ -669,6 +670,7 @@ body.is-file-drag .icons {
   height: auto !important;
   min-width: 0;
   min-height: 0;
+  max-height: none;
 }
 
 .window.is-min {
@@ -860,6 +862,7 @@ body.is-file-drag .icons {
   height: auto !important;
   min-width: 0;
   min-height: 0;
+  max-height: none;
   border: 0;
   box-shadow: none;
   z-index: 40;
@@ -1776,6 +1779,7 @@ body.is-file-drag .dock-trash .trash-lid {
     width: min(420px, calc(100% - 48px));
     min-width: 300px;
     min-height: 180px;
+    max-height: calc(100% - var(--chrome-top) - 128px);
   }
 
   .window-bar {
