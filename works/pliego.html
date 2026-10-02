@@ -60,30 +60,11 @@
         font-size: 11px;
         background: var(--paper);
       }
-      .stage {
-        position: relative;
-        min-height: 0;
-      }
       iframe {
         width: 100%;
         height: 100%;
         border: 0;
         background: #050608;
-      }
-      .wake {
-        position: absolute;
-        inset: 0;
-        display: grid;
-        place-items: center;
-        background: #050608;
-        color: #f4f1ea;
-        font-size: 12px;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        pointer-events: none;
-      }
-      .wake[hidden] {
-        display: none;
       }
     </style>
   </head>
@@ -91,33 +72,13 @@
     <header class="chrome">
       <a class="back" id="back" href="../portfolio.html">← volver al portfolio</a>
     </header>
-    <div class="stage">
-      <p class="wake" id="wake">Abriendo el estudio…</p>
-      <iframe
-        id="studio"
-        title="PLIEGO"
-        src="https://pliego-kr1j.onrender.com/?from=portfolio"
-        sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-downloads"
-        referrerpolicy="strict-origin-when-cross-origin"
-      ></iframe>
-    </div>
+    <iframe
+      id="studio"
+      title="PLIEGO"
+      src="pliego/app/?v=p42"
+      sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-downloads"
+    ></iframe>
     <script>
-      const LIVE = "https://pliego-kr1j.onrender.com";
-      fetch(LIVE + "/api/health", { mode: "no-cors" }).catch(function () {});
-
-      const iframe = document.getElementById("studio");
-      const wake = document.getElementById("wake");
-      iframe.addEventListener("load", function () {
-        wake.hidden = true;
-      });
-      window.addEventListener("message", function (event) {
-        if (event.origin !== LIVE) return;
-        if (!event.data || event.data.type !== "pliego-embed") return;
-        if (event.data.action === "open" && event.data.path) {
-          iframe.src = LIVE + event.data.path;
-        }
-      });
-
       const COLORS = [
         { bg: "#ff783a", fg: "#111111" },
         { bg: "#152dff", fg: "#f4f1ea" },
