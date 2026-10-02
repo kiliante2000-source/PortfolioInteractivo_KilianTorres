@@ -158,7 +158,7 @@ const WINDOWS = {
         </div>
         <h2>( PLIEGO )</h2>
         <div class="cv-actions">
-          <a class="ghost-btn" href="works/pliego.html">entrar a la web</a>
+          <a class="ghost-btn" href="works/pliego.html?v=p41">entrar a la web</a>
           <a class="ghost-btn" href="https://github.com/kiliante2000-source/Pliego_TFM_KilianTorres" target="_blank" rel="noopener">GitHub</a>
         </div>
       </div>
