@@ -73,6 +73,7 @@
     </header>
     <iframe id="studio" title="PLIEGO" src="pliego/app/"></iframe>
     <script>
+      fetch("https://pliego-kr1j.onrender.com/api/health", { mode: "no-cors" }).catch(function () {});
       const COLORS = [
         { bg: "#ff783a", fg: "#111111" },
         { bg: "#152dff", fg: "#f4f1ea" },
