@@ -811,6 +811,9 @@ body.is-file-drag .icons {
   line-height: 1.5;
   overflow-wrap: break-word;
   word-break: break-word;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 
 .window-body h2 {
@@ -899,6 +902,23 @@ body.is-cinema {
   overflow: hidden;
   flex: 0 0 auto;
   padding: 10px;
+}
+
+.window:not(.is-previewing):has(.folder-list-pane) .window-body,
+.window:has(.trash-list) .window-body,
+.window:has(.finder-list) .window-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.folder-list-pane {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  padding-bottom: 12px;
 }
 
 .window.is-previewing .folder-list-pane {
@@ -1128,7 +1148,7 @@ body.is-cinema {
 .file-list {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 0 0 8px;
 }
 
 .file-list li {
@@ -1186,6 +1206,7 @@ body.is-cinema {
   display: flex;
   flex-direction: column;
   margin-top: 8px;
+  padding-bottom: 8px;
 }
 
 .finder-row {
@@ -1590,7 +1611,7 @@ body.is-file-drag .dock-trash .trash-lid {
 .trash-list {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 0 0 8px;
 }
 
 .trash-list li {
@@ -1600,6 +1621,10 @@ body.is-file-drag .dock-trash .trash-lid {
   gap: 8px;
   padding: 8px 0;
   border-bottom: 1px solid rgb(17 17 17 / 0.12);
+  touch-action: pan-y;
+}
+
+.trash-mini {
   touch-action: none;
 }
 
@@ -2131,6 +2156,16 @@ body.is-file-drag .dock-trash .trash-lid {
 
   .lightbox-hint {
     display: none;
+  }
+
+  .window {
+    max-height: calc(100% - var(--chrome-top) - 96px);
+  }
+
+  .window-body,
+  .folder-list-pane {
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
   }
 }
 

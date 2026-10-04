@@ -50,6 +50,12 @@ window.addEventListener("resize", syncChromeTop);
 window.addEventListener("resize", () => {
   const vid = windowsRoot?.querySelector('[data-id="magua-video"]');
   if (vid) syncVideoCinema(vid);
+  windowsRoot?.querySelectorAll(".window").forEach((win) => {
+    if (win.classList.contains("is-photo") || win.classList.contains("is-video") || win.classList.contains("is-previewing")) {
+      return;
+    }
+    refitListWindow(win);
+  });
 });
 window.addEventListener("orientationchange", () => {
   const vid = windowsRoot?.querySelector('[data-id="magua-video"]');
@@ -651,6 +657,7 @@ function refreshFinderWindow() {
   if (!win) return;
   win.querySelector(".window-body").innerHTML = finderHTML();
   bindFinderWindow(win);
+  refitListWindow(win);
 }
 
 function placeIconHome(btn, icon) {
@@ -706,6 +713,7 @@ function refreshTrashWindow() {
   if (!win) return;
   win.querySelector(".window-body").innerHTML = trashHTML();
   bindTrashWindow(win);
+  refitListWindow(win);
 }
 
 function bindTrashWindow(win) {
@@ -838,17 +846,24 @@ function enableTrashRowDrag(row) {
   let ghost = null;
   row.addEventListener("pointerdown", (e) => {
     if (e.target.closest("button")) return;
-    start = { x: e.clientX, y: e.clientY };
-    try {
-      row.setPointerCapture(e.pointerId);
-    } catch (_) {
-      /* synthetic or already-released pointers */
-    }
+    start = { x: e.clientX, y: e.clientY, pointerType: e.pointerType };
   });
   row.addEventListener("pointermove", (e) => {
     if (!start) return;
-    if (Math.hypot(e.clientX - start.x, e.clientY - start.y) < 6 && !ghost) return;
+    const dx = e.clientX - start.x;
+    const dy = e.clientY - start.y;
+    const dist = Math.hypot(dx, dy);
     if (!ghost) {
+      if (start.pointerType === "touch" && Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 8) {
+        start = null;
+        return;
+      }
+      if (dist < 8) return;
+      try {
+        row.setPointerCapture(e.pointerId);
+      } catch (_) {
+        /* synthetic or already-released pointers */
+      }
       ghost = row.cloneNode(true);
       ghost.classList.add("trash-ghost");
       document.body.appendChild(ghost);
@@ -899,7 +914,7 @@ function deskWorkArea() {
     const dr = dock.getBoundingClientRect();
     dockTop = dr.top - frame.top;
   }
-  const gap = 14;
+  const gap = isWideDesk() ? 14 : 22;
   const top = chrome + 8;
   const bottom = Math.max(top + 180, dockTop - gap);
   return {
@@ -971,22 +986,32 @@ function sizeWindow(win, id) {
   placeWindowSoon(win);
 }
 
+function refitListWindow(win) {
+  if (!win || win.classList.contains("is-max") || win.classList.contains("is-cinema")) return;
+  fitWindowHeight(win, deskWorkArea().maxH);
+  placeWindowSoon(win);
+}
+
 function fitWindowHeight(win, maxH) {
   const body = win.querySelector(".window-body");
+  const prevMax = win.style.maxHeight;
+  win.style.maxHeight = "none";
   if (body) {
     body.style.flex = "0 0 auto";
     body.style.minHeight = "";
     body.style.overflow = "visible";
   }
   win.style.height = "auto";
-  const needed = win.offsetHeight;
+  const needed = win.scrollHeight || win.offsetHeight;
+  win.style.maxHeight = prevMax;
   const height = Math.min(maxH, needed);
   win.style.height = `${Math.round(height)}px`;
   if (body) {
-    if (needed > maxH) {
+    if (needed > maxH + 1) {
       body.style.flex = "1 1 0";
       body.style.minHeight = "0";
       body.style.overflow = "auto";
+      body.style.webkitOverflowScrolling = "touch";
     } else {
       body.style.overflow = "hidden";
     }
