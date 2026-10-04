@@ -1016,6 +1016,41 @@ function fitWindowHeight(win, maxH) {
       body.style.overflow = "hidden";
     }
   }
+  syncScrollCue(win);
+}
+
+function listScroller(win) {
+  const pane = win.querySelector(".folder-list-pane");
+  if (pane && !win.classList.contains("is-previewing")) return pane;
+  return win.querySelector(".window-body");
+}
+
+function syncScrollCue(win) {
+  if (!win) return;
+  const scroller = listScroller(win);
+  if (!scroller) {
+    win.classList.remove("is-scrollable", "has-more-below", "has-more-above");
+    return;
+  }
+  const update = () => {
+    if (win.classList.contains("is-previewing")) {
+      win.classList.remove("is-scrollable", "has-more-below", "has-more-above");
+      return;
+    }
+    const max = scroller.scrollHeight - scroller.clientHeight;
+    const scrollable = max > 4;
+    win.classList.toggle("is-scrollable", scrollable);
+    win.classList.toggle("has-more-below", scrollable && scroller.scrollTop < max - 3);
+    win.classList.toggle("has-more-above", scrollable && scroller.scrollTop > 3);
+    scroller.classList.toggle("is-scrollable", scrollable);
+  };
+  if (scroller.dataset.scrollCue !== "1") {
+    scroller.dataset.scrollCue = "1";
+    scroller.addEventListener("scroll", update, { passive: true });
+  }
+  requestAnimationFrame(update);
+  requestAnimationFrame(() => requestAnimationFrame(update));
+  setTimeout(update, 120);
 }
 
 function sizeImageWindow(win, maxW, maxH, selector, capW, capH) {
@@ -1240,7 +1275,8 @@ function openWindow(id) {
       </div>
       <span class="window-title">${spec.title}</span>
     </div>
-    <div class="window-body">${body}</div>`;
+    <div class="window-body">${body}</div>
+    <div class="window-scroll-hint" aria-hidden="true">↓ desliza</div>`;
   windowsRoot.appendChild(win);
   sizeWindow(win, id);
   if (id === "trash") bindTrashWindow(win);
@@ -1723,6 +1759,7 @@ function openFolderPreview(win, dir, name) {
   win.dataset.preview = name;
   win.dataset.previewDir = dir;
   win.classList.add("is-previewing");
+  syncScrollCue(win);
   win.querySelectorAll(".file-link").forEach((btn) => {
     btn.closest("li")?.classList.toggle("is-open", btn.dataset.pdfName === name);
   });
@@ -1773,6 +1810,7 @@ function closeFolderPreview(win) {
     delete win.dataset.restoreH;
     placeWindowSoon(win);
   }
+  requestAnimationFrame(() => syncScrollCue(win));
 }
 
 function wireWindow(win, id) {

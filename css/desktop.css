@@ -591,6 +591,7 @@ body.is-file-drag .icons {
   pointer-events: none;
 }
 
+.icon-app.icon-app-kojurebi,
 .icon-app-kojurebi {
   width: 56px;
   height: 56px;
@@ -814,6 +815,24 @@ body.is-file-drag .icons {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
   touch-action: pan-y;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink) transparent;
+}
+
+.window-body::-webkit-scrollbar,
+.folder-list-pane::-webkit-scrollbar {
+  width: 5px;
+}
+
+.window-body::-webkit-scrollbar-track,
+.folder-list-pane::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.window-body::-webkit-scrollbar-thumb,
+.folder-list-pane::-webkit-scrollbar-thumb {
+  background: rgb(17 17 17 / 0.55);
+  border-radius: 99px;
 }
 
 .window-body h2 {
@@ -919,6 +938,73 @@ body.is-cinema {
   overscroll-behavior: contain;
   touch-action: pan-y;
   padding-bottom: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink) transparent;
+}
+
+.window-scroll-hint {
+  display: none;
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  z-index: 6;
+  transform: translateX(-50%);
+  pointer-events: none;
+  align-items: center;
+  gap: 6px;
+  min-height: 22px;
+  padding: 3px 8px;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.window.has-more-below .window-scroll-hint {
+  display: flex;
+}
+
+.window.has-more-below::after,
+.window.has-more-above::before {
+  content: "";
+  position: absolute;
+  left: 1.5px;
+  right: 1.5px;
+  z-index: 5;
+  height: 36px;
+  pointer-events: none;
+}
+
+.window.has-more-below::after {
+  bottom: 0;
+  background: linear-gradient(to bottom, transparent, var(--paper) 78%);
+}
+
+.window.has-more-above::before {
+  top: 37px;
+  background: linear-gradient(to top, transparent, var(--paper) 78%);
+}
+
+@keyframes scroll-hint-nudge {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(3px);
+  }
+}
+
+.window.has-more-below .window-scroll-hint {
+  animation: scroll-hint-nudge 1.2s ease-in-out infinite;
+}
+
+.window.is-previewing .window-scroll-hint,
+.window.is-previewing.has-more-below::after,
+.window.is-previewing.has-more-above::before {
+  display: none;
 }
 
 .window.is-previewing .folder-list-pane {
@@ -2095,9 +2181,11 @@ body.is-file-drag .dock-trash .trash-lid {
     border-radius: 10px;
   }
 
+  .icon-app.icon-app-kojurebi,
   .icon-app-kojurebi {
     width: 44px;
     height: 44px;
+    border-radius: 50%;
   }
 
   .icon-app-magua {
@@ -2147,6 +2235,7 @@ body.is-file-drag .dock-trash .trash-lid {
   .dock-glyph.icon-app-kojurebi {
     width: 42px;
     height: 42px;
+    border-radius: 50%;
   }
 
   .dock-glyph.icon-app-magua {
@@ -2166,6 +2255,11 @@ body.is-file-drag .dock-trash .trash-lid {
   .folder-list-pane {
     -webkit-overflow-scrolling: touch;
     touch-action: pan-y;
+  }
+
+  .window-scroll-hint {
+    font-size: 10px;
+    padding: 4px 9px;
   }
 }
 
